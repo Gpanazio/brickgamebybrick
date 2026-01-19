@@ -50,7 +50,9 @@ export const Cell = React.memo(({ type, color }: Props) => {
             className="absolute top-0 left-0 w-full h-full bg-gradient-to-b from-white/40 via-transparent to-transparent pointer-events-none"
             style={{
               opacity: `calc(0.5 + var(--intensity) * 0.5)`,
-              transform: `translateY(calc(var(--intensity) * -5%))`
+              transform: `translateY(calc(var(--intensity) * -5%))`,
+              backgroundSize: '100% 200%',
+              animation: 'surface-shift 7s ease-in-out infinite'
             }}
           ></div>
 
@@ -62,11 +64,25 @@ export const Cell = React.memo(({ type, color }: Props) => {
             }}
           ></div>
 
+          {/* 4b. Metallic Sheen Ripple */}
+          <div
+            className="absolute inset-0 pointer-events-none mix-blend-screen"
+            style={{
+              opacity: `calc(0.02 + var(--intensity) * 0.25)`,
+              backgroundImage: 'linear-gradient(120deg, rgba(255,255,255,0.18), rgba(255,255,255,0), rgba(255,255,255,0.25)), radial-gradient(circle at 20% 30%, rgba(255,255,255,0.12), transparent 55%)',
+              backgroundSize: '200% 200%',
+              animation: 'sheen-ripple calc(9s - var(--intensity) * 4s) ease-in-out infinite'
+            }}
+          ></div>
+
           {/* 5. Beveled Glass Edge - Sharp internal border */}
           <div className="absolute inset-0 border-[1px] border-t-white/50 border-l-white/20 border-r-black/60 border-b-black/90 pointer-events-none"></div>
           
           {/* 6. Dynamic Light Glint (Top Left) */}
-          <div className="absolute top-1 left-1 w-2 h-1 bg-white/60 rounded-full blur-[1px] rotate-[-45deg] pointer-events-none"></div>
+          <div 
+            className="absolute top-1 left-1 w-2 h-1 bg-white/60 rounded-full blur-[1px] rotate-[-45deg] pointer-events-none"
+            style={{ animation: 'glint-shimmer 5s ease-in-out infinite' }}
+          ></div>
 
           {/* 7. Bottom Contact Depth */}
           <div className="absolute bottom-0 left-0 w-full h-[40%] bg-gradient-to-t from-black/90 to-transparent pointer-events-none"></div>
@@ -76,9 +92,12 @@ export const Cell = React.memo(({ type, color }: Props) => {
             className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full blur-[6px] pointer-events-none`}
             style={{
               backgroundColor: isRed ? '#FF3333' : '#FFFFFF',
-              opacity: `calc(0.1 + var(--intensity) * 0.9)`,
-              transform: `translate(-50%, -50%) scale(calc(1 + var(--intensity) * 4))`
-            }}
+              '--core-opacity-min': `calc(0.2 + var(--intensity) * 0.4)`,
+              '--core-opacity-max': `calc(0.5 + var(--intensity) * 0.5)`,
+              '--core-scale-min': `calc(1 + var(--intensity) * 2)`,
+              '--core-scale-max': `calc(1.6 + var(--intensity) * 3)`,
+              animation: `core-breathe calc(4s - var(--intensity) * 2s) ease-in-out infinite`
+            } as React.CSSProperties}
           ></div>
         </div>
       )}

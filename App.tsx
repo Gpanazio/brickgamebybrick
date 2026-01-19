@@ -9,11 +9,17 @@ import { Display } from './components/Display';
 import { Monolith } from './components/Monolith';
 import { Power, RotateCw, ArrowDown, ArrowLeft, ArrowRight } from 'lucide-react';
 
+const SCORE_FLASH_THRESHOLD = 100;
+const SCORE_FLASH_DURATION_MS = 900;
+
 const App: React.FC = () => {
   const [dropTime, setDropTime] = useState<null | number>(null);
   const [gameOver, setGameOver] = useState(false);
   const [gameStarted, setGameStarted] = useState(false);
+  const [scoreFlash, setScoreFlash] = useState(false);
   const gameAreaRef = useRef<HTMLDivElement>(null);
+  const scoreFlashTimeoutRef = useRef<number | null>(null);
+  const previousScoreRef = useRef(0);
 
   const { player, updatePlayerPos, resetPlayer, playerRotate } = usePlayer();
   const { board, setBoard, rowsCleared } = useBoard(player, resetPlayer);
@@ -95,6 +101,28 @@ const App: React.FC = () => {
     drop();
   }, dropTime);
 
+  useEffect(() => {
+    const delta = score - previousScoreRef.current;
+    if (delta > SCORE_FLASH_THRESHOLD && !gameOver) {
+      setScoreFlash(true);
+      if (scoreFlashTimeoutRef.current) {
+        window.clearTimeout(scoreFlashTimeoutRef.current);
+      }
+      scoreFlashTimeoutRef.current = window.setTimeout(() => {
+        setScoreFlash(false);
+      }, SCORE_FLASH_DURATION_MS);
+    }
+    previousScoreRef.current = score;
+  }, [score, gameOver]);
+
+  useEffect(() => {
+    return () => {
+      if (scoreFlashTimeoutRef.current) {
+        window.clearTimeout(scoreFlashTimeoutRef.current);
+      }
+    };
+  }, []);
+
   return (
     <div 
       className="relative w-screen h-screen overflow-hidden bg-void font-sans text-white select-none outline-none"
@@ -131,13 +159,14 @@ const App: React.FC = () => {
              <div className={`
                 relative p-[2px] bg-neutral-900 border-2 transition-all duration-1000 overflow-hidden rounded-sm
                 ${gameOver ? 'border-[#FF0000] shadow-[0_0_80px_rgba(255,0,0,0.5)]' : 'border-neutral-800 shadow-2xl'}
+                ${scoreFlash && !gameOver ? 'score-flash' : ''}
              `}>
                
                {(!gameStarted || gameOver) && (
                  <div className="absolute inset-0 z-30 flex flex-col items-center justify-center bg-[#050505]/95 backdrop-blur-xl p-6 text-center overflow-hidden">
                    {gameOver && (
                      <div className="mb-10 animate-flicker">
-                        <h2 className="text-4xl font-black text-[#FF0000] tracking-[0.2em] mb-4 uppercase">Terminated</h2>
+                        <h2 className="text-4xl font-black text-[#FF0000] tracking-[0.2em] mb-4 uppercase glitch animate-flicker" data-text="Terminated">Terminated</h2>
                         <div className="w-full h-[1px] bg-gradient-to-r from-transparent via-[#FF0000] to-transparent mb-4"></div>
                         <p className="font-mono text-[10px] text-neutral-500 uppercase tracking-[0.3em]">Final Sequence Complete</p>
                      </div>
