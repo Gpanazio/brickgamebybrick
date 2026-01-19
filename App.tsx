@@ -9,6 +9,9 @@ import { Display } from './components/Display';
 import { Monolith } from './components/Monolith';
 import { Power, RotateCw, ArrowDown, ArrowLeft, ArrowRight } from 'lucide-react';
 
+const SCORE_FLASH_THRESHOLD = 100;
+const SCORE_FLASH_DURATION_MS = 900;
+
 const App: React.FC = () => {
   const [dropTime, setDropTime] = useState<null | number>(null);
   const [gameOver, setGameOver] = useState(false);
@@ -100,14 +103,14 @@ const App: React.FC = () => {
 
   useEffect(() => {
     const delta = score - previousScoreRef.current;
-    if (delta > 100 && !gameOver) {
+    if (delta > SCORE_FLASH_THRESHOLD && !gameOver) {
       setScoreFlash(true);
       if (scoreFlashTimeoutRef.current) {
         window.clearTimeout(scoreFlashTimeoutRef.current);
       }
       scoreFlashTimeoutRef.current = window.setTimeout(() => {
         setScoreFlash(false);
-      }, 900);
+      }, SCORE_FLASH_DURATION_MS);
     }
     previousScoreRef.current = score;
   }, [score, gameOver]);
