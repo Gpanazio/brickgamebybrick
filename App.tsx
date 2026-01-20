@@ -121,11 +121,11 @@ const App: React.FC = () => {
     >
       <Monolith />
 
-      <div className="absolute inset-0 z-10 flex flex-col items-center justify-center p-2 md:p-4">
+      <div className="absolute inset-0 z-10 flex flex-col items-center justify-center p-0 md:p-4 gap-0">
 
         {/* Mobile HUD - Visible only on mobile */}
-        <div className="md:hidden w-[300px] z-20">
-          <div className="flex justify-between items-end mb-2 border-l-2 border-[#FF0000] pl-3">
+        <div className="md:hidden w-game-board z-20">
+          <div className="flex justify-between items-end border-l-2 border-[#FF0000] pl-3">
             <h1 className="text-xl font-black tracking-tighter leading-none text-white">BRICK<br /><span className="text-[#FF0000]">GAME</span></h1>
             <div className="font-mono text-[8px] text-neutral-500 uppercase tracking-widest text-right">
               Liq.Glass<br />v4.5
@@ -148,7 +148,7 @@ const App: React.FC = () => {
           </div>
         </div>
 
-        <div className="relative flex flex-col md:flex-row gap-2 md:gap-6 items-stretch w-full max-w-4xl justify-center">
+        <div className="relative flex flex-col md:flex-row md:gap-6 items-stretch w-full max-w-4xl justify-center">
 
           {/* Left Panel - Score & Status - Hidden on Mobile */}
           <div className="hidden md:flex flex-col w-56 justify-between">
@@ -209,7 +209,7 @@ const App: React.FC = () => {
                 </div>
               )}
 
-              <div className="grid grid-rows-[repeat(20,minmax(0,1fr))] grid-cols-[repeat(10,minmax(0,1fr))] gap-[1px] bg-[#000000] w-[300px] h-[600px] relative z-10">
+              <div className="grid grid-rows-[repeat(20,minmax(0,1fr))] grid-cols-[repeat(10,minmax(0,1fr))] gap-[1px] bg-[#000000] w-game-board h-game-board relative z-10">
                 {board.map((row, y) =>
                   row.map((cell, x) => (
                     <Cell key={`${x}-${y}`} type={cell[0]} color={cell[2]} />
