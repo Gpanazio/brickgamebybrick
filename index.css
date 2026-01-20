@@ -1,11 +1,5 @@
 @import "tailwindcss";
 
-/* Custom theme variables */
-@theme {
-  --width-game-board: 300px;
-  --height-game-board: 600px;
-}
-
 /* Custom animations and styles */
 @keyframes score-flash {
 
