@@ -1,67 +1,55 @@
 @import "tailwindcss";
 
-/* Custom animations and styles */
-@keyframes score-flash {
+/* Custom Theme Variables 
+  Mantém os 300px aqui como base de referência.
+  A correção no App.tsx (usando w-full no HUD) vai lidar com
+  os pixeis extra das bordas automaticamente.
+*/
+@theme {
+  --width-game-board: 300px;
+  --height-game-board: 600px;
+}
 
-  0%,
-  100% {
+/* --- Atmospheric Animations --- */
+
+/* Flash vermelho intenso quando ganha pontos */
+@keyframes score-flash {
+  0%, 100% {
     box-shadow: 0 0 50px rgba(0, 0, 0, 0.8);
   }
-
   50% {
     box-shadow: 0 0 80px rgba(255, 0, 0, 0.4);
   }
 }
 
+/* Efeito de defeito digital no texto "Terminated" */
 @keyframes glitch {
-
-  0%,
-  100% {
-    transform: translate(0);
-  }
-
-  20% {
-    transform: translate(-2px, 2px);
-  }
-
-  40% {
-    transform: translate(-2px, -2px);
-  }
-
-  60% {
-    transform: translate(2px, 2px);
-  }
-
-  80% {
-    transform: translate(2px, -2px);
-  }
+  0%, 100% { transform: translate(0); }
+  20% { transform: translate(-2px, 2px); }
+  40% { transform: translate(-2px, -2px); }
+  60% { transform: translate(2px, 2px); }
+  80% { transform: translate(2px, -2px); }
 }
 
+/* Tremulação de luz (lâmpada falhando) */
 @keyframes flicker {
-
-  0%,
-  100% {
-    opacity: 1;
-  }
-
-  50% {
-    opacity: 0.5;
-  }
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
 }
 
+/* "Respiração" suave da luz vermelha (efeito orgânico) */
 @keyframes breathe {
-
-  0%,
-  100% {
+  0%, 100% {
     opacity: 0.4;
     transform: scale(1);
   }
-
   50% {
     opacity: 0.7;
     transform: scale(1.1);
   }
 }
+
+/* --- Utility Classes para Animação --- */
 
 .animate-score-flash {
   animation: score-flash 0.5s ease-out;
@@ -79,11 +67,15 @@
   animation: breathe 3s ease-in-out infinite;
 }
 
-/* Scanline overlay effect */
+/* --- Efeitos de Textura --- */
+
+/* Scanlines finas para o efeito CRT/Monitor antigo */
 .bg-scanline-overlay {
-  background: repeating-linear-gradient(0deg,
-      transparent,
-      transparent 2px,
-      rgba(0, 0, 0, 0.3) 2px,
-      rgba(0, 0, 0, 0.3) 4px);
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0, 0, 0, 0.3) 2px,
+    rgba(0, 0, 0, 0.3) 4px
+  );
 }
