@@ -4,7 +4,7 @@ export const Monolith: React.FC = () => {
   return (
     <div className="fixed inset-0 flex items-center justify-center z-0 pointer-events-none">
       {/* The Monolith Container */}
-      <div className="relative w-[300px] h-[500px]">
+      <div className="relative w-full max-w-[300px] h-[500px]">
         {/* Obsidian/Liquid Glass Body */}
         <div className="absolute inset-0 bg-black border border-white/10 shadow-2xl overflow-hidden rounded-sm backdrop-blur-sm">
 

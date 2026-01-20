@@ -121,10 +121,36 @@ const App: React.FC = () => {
     >
       <Monolith />
 
-      <div className="absolute inset-0 z-10 flex items-center justify-center p-4">
+      <div className="absolute inset-0 z-10 flex flex-col items-center justify-center p-4">
+
+        {/* Mobile HUD - Visible only on mobile */}
+        <div className="md:hidden w-full max-w-[320px] mb-4 z-20">
+          <div className="flex justify-between items-end mb-2 border-l-2 border-[#FF0000] pl-3">
+            <h1 className="text-xl font-black tracking-tighter leading-none text-white">BRICK<br /><span className="text-[#FF0000]">GAME</span></h1>
+            <div className="font-mono text-[8px] text-neutral-500 uppercase tracking-widest text-right">
+              Liq.Glass<br />v4.5
+            </div>
+          </div>
+
+          <div className="grid grid-cols-3 gap-2">
+            <div className="bg-black/80 border border-white/10 p-2 rounded-sm backdrop-blur-md">
+              <span className="block font-mono text-[8px] text-neutral-500 uppercase tracking-widest">Score</span>
+              <span className={`block font-brick text-lg leading-none ${scoreFlash ? 'text-red-500' : 'text-white'}`}>{score}</span>
+            </div>
+            <div className="bg-black/80 border border-white/10 p-2 rounded-sm backdrop-blur-md">
+              <span className="block font-mono text-[8px] text-neutral-500 uppercase tracking-widest">Lines</span>
+              <span className="block font-brick text-lg leading-none text-white">{rows}</span>
+            </div>
+            <div className="bg-black/80 border border-white/10 p-2 rounded-sm backdrop-blur-md">
+              <span className="block font-mono text-[8px] text-neutral-500 uppercase tracking-widest">Tier</span>
+              <span className="block font-brick text-lg leading-none text-white">{level}</span>
+            </div>
+          </div>
+        </div>
+
         <div className="relative flex flex-col md:flex-row gap-6 items-stretch w-full max-w-4xl justify-center">
 
-          {/* Left Panel - Score & Status */}
+          {/* Left Panel - Score & Status - Hidden on Mobile */}
           <div className="hidden md:flex flex-col w-56 justify-between">
             <div>
               <div className="mb-8 border-l-2 border-[#FF0000] pl-4">
@@ -148,7 +174,7 @@ const App: React.FC = () => {
           </div>
 
           {/* Center - Game Board */}
-          <div className="relative group flex-shrink-0">
+          <div className="relative group flex-shrink-0 z-10">
             <div className={`
                 relative p-[2px] bg-black border transition-all duration-500 overflow-hidden rounded-sm
                 ${gameOver ? 'border-[#FF0000] shadow-[0_0_80px_rgba(255,0,0,0.6)]' : 'border-white/10 shadow-[0_0_50px_rgba(0,0,0,0.8)]'}
@@ -195,7 +221,7 @@ const App: React.FC = () => {
             </div>
           </div>
 
-          {/* Right Panel - Controls */}
+          {/* Right Panel - Controls - Hidden on Mobile */}
           <div className="hidden md:flex flex-col w-56 justify-start">
             <h3 className="font-mono text-[10px] text-neutral-600 mb-4 uppercase tracking-[0.3em] border-b border-neutral-900 pb-3">Input Mapping</h3>
 
@@ -229,16 +255,57 @@ const App: React.FC = () => {
             </div>
           </div>
 
-          {/* Mobile Controls Layer */}
-          <div className="md:hidden fixed bottom-8 left-8 right-8 flex justify-between z-50 pointer-events-none">
-            <div className="flex gap-3 pointer-events-auto">
-              <button onClick={() => movePlayer(-1)} className="p-5 bg-black/80 backdrop-blur-md rounded-full border border-white/10 active:bg-red-900/40 active:border-red-500 transition-all shadow-lg"><ArrowLeft size={22} className="text-white/80" /></button>
-              <button onClick={() => movePlayer(1)} className="p-5 bg-black/80 backdrop-blur-md rounded-full border border-white/10 active:bg-red-900/40 active:border-red-500 transition-all shadow-lg"><ArrowRight size={22} className="text-white/80" /></button>
+          {/* Mobile Controls Layer - Industrial Design */}
+          <div className="md:hidden fixed bottom-6 left-0 right-0 px-6 flex justify-between items-end z-50 pointer-events-none select-none">
+
+            {/* D-Pad Container */}
+            <div className="pointer-events-auto grid grid-cols-3 grid-rows-2 gap-2 w-[160px]">
+              {/* Left */}
+              <button
+                onClick={() => movePlayer(-1)}
+                className="col-start-1 row-start-2 w-14 h-14 bg-black/80 backdrop-blur-xl border border-white/10 rounded-sm flex items-center justify-center active:bg-red-900/40 active:border-red-500 active:text-white transition-all shadow-[0_0_15px_rgba(0,0,0,0.5)]"
+              >
+                <ArrowLeft size={24} className="text-neutral-400" />
+              </button>
+
+              {/* Down */}
+              <button
+                onClick={() => dropPlayer()}
+                className="col-start-2 row-start-2 w-14 h-14 bg-black/80 backdrop-blur-xl border border-white/10 rounded-sm flex items-center justify-center active:bg-red-900/40 active:border-red-500 active:text-white transition-all shadow-[0_0_15px_rgba(0,0,0,0.5)]"
+              >
+                <ArrowDown size={24} className="text-neutral-400" />
+              </button>
+
+              {/* Right */}
+              <button
+                onClick={() => movePlayer(1)}
+                className="col-start-3 row-start-2 w-14 h-14 bg-black/80 backdrop-blur-xl border border-white/10 rounded-sm flex items-center justify-center active:bg-red-900/40 active:border-red-500 active:text-white transition-all shadow-[0_0_15px_rgba(0,0,0,0.5)]"
+              >
+                <ArrowRight size={24} className="text-neutral-400" />
+              </button>
             </div>
-            <div className="flex gap-3 pointer-events-auto">
-              <button onClick={() => dropPlayer()} className="p-5 bg-black/80 backdrop-blur-md rounded-full border border-white/10 active:bg-red-900/40 active:border-red-500 transition-all shadow-lg"><ArrowDown size={22} className="text-white/80" /></button>
-              <button onClick={() => playerRotate(board, 1)} className="p-5 bg-black/80 backdrop-blur-md rounded-full border border-white/10 active:bg-red-900/40 active:border-red-500 transition-all shadow-lg"><RotateCw size={22} className="text-white/80" /></button>
+
+            {/* Action Button Container */}
+            <div className="pointer-events-auto flex flex-col gap-4 items-end">
+              {/* Hard Drop / Space */}
+              <button
+                onClick={() => hardDrop()}
+                className="w-16 h-16 bg-black/80 backdrop-blur-xl border border-white/10 rounded-sm flex flex-col items-center justify-center active:bg-red-900/40 active:border-red-500 transition-all shadow-[0_0_15px_rgba(0,0,0,0.5)] group"
+              >
+                <div className="w-8 h-1 bg-neutral-600 group-active:bg-red-500 mb-1"></div>
+                <span className="font-mono text-[8px] text-neutral-500 uppercase">DROP</span>
+              </button>
+
+              {/* Rotate */}
+              <button
+                onClick={() => playerRotate(board, 1)}
+                className="w-20 h-20 bg-black/80 backdrop-blur-xl border border-white/20 rounded-sm flex flex-col items-center justify-center active:bg-red-900/40 active:border-red-500 transition-all shadow-[0_0_20px_rgba(0,0,0,0.6)] group"
+              >
+                <RotateCw size={32} className="text-neutral-300 group-active:text-white mb-1" />
+                <span className="font-mono text-[9px] text-neutral-500 uppercase group-active:text-red-400">ROT</span>
+              </button>
             </div>
+
           </div>
         </div>
       </div>
