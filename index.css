@@ -2,21 +2,65 @@
 
 /* Custom animations and styles */
 @keyframes score-flash {
-  0%, 100% { box-shadow: 0 0 50px rgba(0,0,0,0.8); }
-  50% { box-shadow: 0 0 80px rgba(255,0,0,0.4); }
+
+  0%,
+  100% {
+    box-shadow: 0 0 50px rgba(0, 0, 0, 0.8);
+  }
+
+  50% {
+    box-shadow: 0 0 80px rgba(255, 0, 0, 0.4);
+  }
 }
 
 @keyframes glitch {
-  0%, 100% { transform: translate(0); }
-  20% { transform: translate(-2px, 2px); }
-  40% { transform: translate(-2px, -2px); }
-  60% { transform: translate(2px, 2px); }
-  80% { transform: translate(2px, -2px); }
+
+  0%,
+  100% {
+    transform: translate(0);
+  }
+
+  20% {
+    transform: translate(-2px, 2px);
+  }
+
+  40% {
+    transform: translate(-2px, -2px);
+  }
+
+  60% {
+    transform: translate(2px, 2px);
+  }
+
+  80% {
+    transform: translate(2px, -2px);
+  }
 }
 
 @keyframes flicker {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.5; }
+
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.5;
+  }
+}
+
+@keyframes breathe {
+
+  0%,
+  100% {
+    opacity: 0.4;
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: 0.7;
+    transform: scale(1.1);
+  }
 }
 
 .animate-score-flash {
@@ -31,13 +75,15 @@
   animation: flicker 0.2s ease-in-out infinite;
 }
 
+.animate-breathe {
+  animation: breathe 3s ease-in-out infinite;
+}
+
 /* Scanline overlay effect */
 .bg-scanline-overlay {
-  background: repeating-linear-gradient(
-    0deg,
-    transparent,
-    transparent 2px,
-    rgba(0, 0, 0, 0.3) 2px,
-    rgba(0, 0, 0, 0.3) 4px
-  );
+  background: repeating-linear-gradient(0deg,
+      transparent,
+      transparent 2px,
+      rgba(0, 0, 0, 0.3) 2px,
+      rgba(0, 0, 0, 0.3) 4px);
 }

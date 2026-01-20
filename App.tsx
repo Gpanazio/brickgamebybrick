@@ -19,7 +19,7 @@ const App: React.FC = () => {
 
   const { player, updatePlayerPos, resetPlayer, playerRotate } = usePlayer();
   const { board, setBoard, rowsCleared, clearEventId } = useBoard(player, resetPlayer);
-  const { score, rows, level, setScore, setRows, setLevel, resetStatus } = useGameStatus(rowsCleared, clearEventId);
+  const { score, rows, level, setScore, setRows, setLevel, resetStatus, addPoints } = useGameStatus(rowsCleared, clearEventId);
 
   const movePlayer = (dir: number) => {
     if (!checkCollision(player, board, { x: dir, y: 0 })) {
@@ -57,16 +57,22 @@ const App: React.FC = () => {
 
   const dropPlayer = useCallback(() => {
     setDropTime(null);
+    // Soft Drop: 1 point per cell moved down
+    if (!checkCollision(player, board, { x: 0, y: 1 })) {
+      addPoints(1);
+    }
     drop();
-  }, [drop]);
+  }, [drop, player, board, addPoints]);
 
   const hardDrop = useCallback(() => {
     let tmpY = 0;
     while (!checkCollision(player, board, { x: 0, y: tmpY + 1 })) {
       tmpY += 1;
     }
+    // Hard Drop: 2 points per cell moved down
+    addPoints(tmpY * 2);
     updatePlayerPos({ x: 0, y: tmpY, collided: true });
-  }, [player, board, updatePlayerPos]);
+  }, [player, board, updatePlayerPos, addPoints]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
