@@ -121,7 +121,7 @@ const App: React.FC = () => {
     >
       <Monolith />
 
-      <div className="absolute inset-0 z-10 flex flex-col items-center justify-center p-0 md:p-4">
+      <div className="absolute inset-0 z-10 flex flex-col items-center justify-center p-0 md:p-4 gap-0">
 
         {/* Mobile HUD - Visible only on mobile */}
         <div className="md:hidden w-game-board z-20">
