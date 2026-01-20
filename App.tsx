@@ -13,11 +13,13 @@ const App: React.FC = () => {
   const [dropTime, setDropTime] = useState<null | number>(null);
   const [gameOver, setGameOver] = useState(false);
   const [gameStarted, setGameStarted] = useState(false);
+  const [scoreFlash, setScoreFlash] = useState(false);
   const gameAreaRef = useRef<HTMLDivElement>(null);
+  const prevScoreRef = useRef(0);
 
   const { player, updatePlayerPos, resetPlayer, playerRotate } = usePlayer();
-  const { board, setBoard, rowsCleared } = useBoard(player, resetPlayer);
-  const { score, rows, level, setScore, setRows, setLevel } = useGameStatus(rowsCleared);
+  const { board, setBoard, rowsCleared, clearEventId } = useBoard(player, resetPlayer);
+  const { score, rows, level, setScore, setRows, setLevel, resetStatus } = useGameStatus(rowsCleared, clearEventId);
 
   const movePlayer = (dir: number) => {
     if (!checkCollision(player, board, { x: dir, y: 0 })) {
@@ -30,9 +32,8 @@ const App: React.FC = () => {
     setDropTime(1000);
     resetPlayer();
     setGameOver(false);
-    setScore(0);
-    setRows(0);
-    setLevel(0);
+    resetStatus(); // Reset score, rows, level
+    prevScoreRef.current = 0;
     setGameStarted(true);
     gameAreaRef.current?.focus();
   };
@@ -95,123 +96,142 @@ const App: React.FC = () => {
     drop();
   }, dropTime);
 
+  // Score flash effect when score increases significantly
+  useEffect(() => {
+    const scoreDiff = score - prevScoreRef.current;
+    if (scoreDiff >= 100) {
+      setScoreFlash(true);
+      const timer = setTimeout(() => setScoreFlash(false), 500);
+      return () => clearTimeout(timer);
+    }
+    prevScoreRef.current = score;
+  }, [score]);
+
   return (
-    <div 
-      className="relative w-screen h-screen overflow-hidden bg-void font-sans text-white select-none outline-none"
+    <div
+      className="relative w-screen h-screen overflow-hidden bg-black font-sans text-white select-none outline-none"
       tabIndex={0}
       ref={gameAreaRef}
     >
       <Monolith />
 
       <div className="absolute inset-0 z-10 flex items-center justify-center p-4">
-        <div className="relative flex flex-col md:flex-row gap-8 items-start w-full max-w-5xl justify-center">
-          
-          <div className="hidden md:flex flex-col w-64 pt-8">
-             <div className="mb-12 border-l-2 border-[#FF0000] pl-4">
-               <h1 className="text-4xl font-black tracking-tighter leading-none mb-2">BRICK<br/>SYSTEM</h1>
-               <p className="font-mono text-[10px] text-neutral-500 uppercase tracking-widest">Protocol: Liquidglass v4.5</p>
-             </div>
+        <div className="relative flex flex-col md:flex-row gap-6 items-stretch w-full max-w-4xl justify-center">
 
-             <div className="bg-void/90 border border-neutral-800 p-6 shadow-2xl backdrop-blur-md">
-               <Display label="Score" text={score.toLocaleString()} alert={score > 0} />
-               <Display label="Lines" text={rows} />
-               <Display label="Tier" text={level} />
-               
-               <div className="mt-8 pt-8 border-t border-neutral-800">
-                  <p className="font-mono text-[9px] text-neutral-600 mb-2 tracking-widest uppercase">System Log:</p>
-                  <div className="font-mono text-[11px] text-[#FF0000]/70 h-24 overflow-hidden leading-relaxed uppercase">
-                    {gameOver ? '> CRITICAL: SYSTEM_FAILURE\n> PROTOCOL_TERMINATED\n> LOG_ENTRY: ' + score : gameStarted ? '> STATUS: ACTIVE\n> CORE_SYNC: NOMINAL\n> RENDER_TARGET: LIQUID' : '> STATUS: STANDBY\n> WAITING_FOR_CORE...'}
-                  </div>
-               </div>
-             </div>
+          {/* Left Panel - Score & Status */}
+          <div className="hidden md:flex flex-col w-56 justify-between">
+            <div>
+              <div className="mb-8 border-l-2 border-[#FF0000] pl-4">
+                <h1 className="text-3xl font-black tracking-tighter leading-none mb-1">BRICK<br />GAME</h1>
+                <p className="font-mono text-[9px] text-neutral-500 uppercase tracking-widest">Protocol: Liquidglass v4.5</p>
+              </div>
+
+              <div className="bg-black/80 border border-white/10 p-5 shadow-[0_0_30px_rgba(0,0,0,0.5)] backdrop-blur-xl rounded-sm">
+                <Display label="Score" text={score.toLocaleString()} alert={score > 0} />
+                <Display label="Lines" text={rows} />
+                <Display label="Tier" text={level} />
+              </div>
+            </div>
+
+            <div className="bg-black/60 border border-white/5 p-4 rounded-sm mt-4">
+              <p className="font-mono text-[9px] text-neutral-600 mb-2 tracking-widest uppercase">System Log:</p>
+              <div className="font-mono text-[10px] text-[#FF0000]/70 leading-relaxed uppercase whitespace-pre-line">
+                {gameOver ? '> CRITICAL: SYSTEM_FAILURE\n> PROTOCOL_TERMINATED\n> LOG_ENTRY: ' + score : gameStarted ? '> STATUS: ACTIVE\n> CORE_SYNC: NOMINAL\n> RENDER_TARGET: LIQUID' : '> STATUS: STANDBY\n> WAITING_FOR_CORE...'}
+              </div>
+            </div>
           </div>
 
-          <div className="relative group">
-             {/* The Board Container */}
-             <div className={`
-                relative p-[2px] bg-neutral-900 border-2 transition-all duration-1000 overflow-hidden rounded-sm
-                ${gameOver ? 'border-[#FF0000] shadow-[0_0_80px_rgba(255,0,0,0.5)]' : 'border-neutral-800 shadow-2xl'}
+          {/* Center - Game Board */}
+          <div className="relative group flex-shrink-0">
+            <div className={`
+                relative p-[2px] bg-black border transition-all duration-500 overflow-hidden rounded-sm
+                ${gameOver ? 'border-[#FF0000] shadow-[0_0_80px_rgba(255,0,0,0.6)]' : 'border-white/10 shadow-[0_0_50px_rgba(0,0,0,0.8)]'}
+                ${scoreFlash ? 'animate-score-flash' : ''}
              `}>
-               
-               {(!gameStarted || gameOver) && (
-                 <div className="absolute inset-0 z-30 flex flex-col items-center justify-center bg-[#050505]/95 backdrop-blur-xl p-6 text-center overflow-hidden">
-                   {gameOver && (
-                     <div className="mb-10 animate-flicker">
-                        <h2 className="text-4xl font-black text-[#FF0000] tracking-[0.2em] mb-4 uppercase">Terminated</h2>
-                        <div className="w-full h-[1px] bg-gradient-to-r from-transparent via-[#FF0000] to-transparent mb-4"></div>
-                        <p className="font-mono text-[10px] text-neutral-500 uppercase tracking-[0.3em]">Final Sequence Complete</p>
-                     </div>
-                   )}
-                   <button 
+
+              {(!gameStarted || gameOver) && (
+                <div className="absolute inset-0 z-30 flex flex-col items-center justify-center bg-[#050505]/95 backdrop-blur-xl p-4 text-center">
+                  {gameOver && (
+                    <div className="mb-6">
+                      <h2 className="text-2xl font-black text-[#FF0000] tracking-[0.15em] mb-3 uppercase animate-glitch">Terminated</h2>
+                      <div className="w-3/4 mx-auto h-[1px] bg-gradient-to-r from-transparent via-[#FF0000] to-transparent mb-3 animate-flicker"></div>
+                      <p className="font-mono text-[9px] text-neutral-500 uppercase tracking-[0.2em]">Final Sequence</p>
+                    </div>
+                  )}
+                  <button
                     onClick={startGame}
                     className="
                       group relative px-10 py-5 bg-transparent border border-neutral-800 
                       hover:border-[#FF0000] hover:bg-[#FF0000]/5 transition-all duration-500
                     "
-                   >
-                     <div className="flex items-center gap-4">
-                       <Power size={18} className="text-[#FF0000] group-hover:rotate-180 transition-transform duration-700" />
-                       <span className="font-mono font-bold tracking-[0.4em] text-sm text-neutral-300 group-hover:text-white">
-                         {gameOver ? 'REINITIALIZE' : 'INIT_CORE'}
-                       </span>
-                     </div>
-                     {/* Button corner accents */}
-                     <div className="absolute top-0 left-0 w-2 h-2 border-t border-l border-neutral-600 group-hover:border-[#FF0000]"></div>
-                     <div className="absolute bottom-0 right-0 w-2 h-2 border-b border-r border-neutral-600 group-hover:border-[#FF0000]"></div>
-                   </button>
-                 </div>
-               )}
+                  >
+                    <div className="flex items-center gap-4">
+                      <Power size={18} className="text-[#FF0000] group-hover:rotate-180 transition-transform duration-700" />
+                      <span className="font-mono font-bold tracking-[0.4em] text-sm text-neutral-300 group-hover:text-white">
+                        {gameOver ? 'REINITIALIZE' : 'INIT_CORE'}
+                      </span>
+                    </div>
+                    <div className="absolute top-0 left-0 w-2 h-2 border-t border-l border-neutral-600 group-hover:border-[#FF0000]"></div>
+                    <div className="absolute bottom-0 right-0 w-2 h-2 border-b border-r border-neutral-600 group-hover:border-[#FF0000]"></div>
+                  </button>
+                </div>
+              )}
 
-               <div className="grid grid-rows-[repeat(20,minmax(0,1fr))] grid-cols-[repeat(10,minmax(0,1fr))] gap-[1px] bg-[#000000] w-[300px] h-[600px] relative z-10">
-                 {board.map((row, y) =>
-                   row.map((cell, x) => (
-                     <Cell key={`${x}-${y}`} type={cell[0]} color={cell[2]} />
-                   ))
-                 )}
-               </div>
+              <div className="grid grid-rows-[repeat(20,minmax(0,1fr))] grid-cols-[repeat(10,minmax(0,1fr))] gap-[1px] bg-[#000000] w-[300px] h-[600px] relative z-10">
+                {board.map((row, y) =>
+                  row.map((cell, x) => (
+                    <Cell key={`${x}-${y}`} type={cell[0]} color={cell[2]} />
+                  ))
+                )}
+              </div>
 
-               <div className="absolute inset-0 pointer-events-none bg-scanline-overlay opacity-20 z-20"></div>
-             </div>
+              <div className="absolute inset-0 pointer-events-none bg-scanline-overlay opacity-20 z-20"></div>
+            </div>
           </div>
 
-          <div className="flex flex-col w-64 pt-8 md:pl-8">
-            <div className="hidden md:block">
-              <h3 className="font-mono text-[10px] text-neutral-600 mb-6 uppercase tracking-[0.3em] border-b border-neutral-900 pb-3">Input Mapping</h3>
-              
-              <div className="grid grid-cols-2 gap-4">
-                <div className="flex flex-col items-center p-4 border border-neutral-900 bg-void/50 group hover:border-neutral-700 transition-colors">
-                   <RotateCw size={16} className="text-neutral-600 mb-3 group-hover:text-[#FF0000] transition-colors"/>
-                   <span className="font-mono text-[8px] text-neutral-500 uppercase tracking-widest">Rotate</span>
-                </div>
-                <div className="flex flex-col items-center p-4 border border-neutral-900 bg-void/50 group hover:border-neutral-700 transition-colors">
-                   <ArrowDown size={16} className="text-neutral-600 mb-3 group-hover:text-[#FF0000] transition-colors"/>
-                   <span className="font-mono text-[8px] text-neutral-500 uppercase tracking-widest">Nudge</span>
-                </div>
-                 <div className="flex flex-col items-center p-4 border border-neutral-900 bg-void/50 group hover:border-neutral-700 transition-colors">
-                   <ArrowLeft size={16} className="text-neutral-600 mb-3 group-hover:text-[#FF0000] transition-colors"/>
-                   <span className="font-mono text-[8px] text-neutral-500 uppercase tracking-widest">Port</span>
-                </div>
-                 <div className="flex flex-col items-center p-4 border border-neutral-900 bg-void/50 group hover:border-neutral-700 transition-colors">
-                   <ArrowRight size={16} className="text-neutral-600 mb-3 group-hover:text-[#FF0000] transition-colors"/>
-                   <span className="font-mono text-[8px] text-neutral-500 uppercase tracking-widest">Starb.</span>
-                </div>
-                 <div className="col-span-2 flex flex-col items-center p-4 border border-neutral-900 bg-void/50 group hover:border-neutral-700 transition-colors">
-                   <div className="w-12 h-3 border border-neutral-800 mb-3 group-hover:border-[#FF0000]/50 transition-colors"></div>
-                   <span className="font-mono text-[8px] text-neutral-500 uppercase tracking-widest">Quantum Drop</span>
-                </div>
+          {/* Right Panel - Controls */}
+          <div className="hidden md:flex flex-col w-56 justify-start">
+            <h3 className="font-mono text-[10px] text-neutral-600 mb-4 uppercase tracking-[0.3em] border-b border-neutral-900 pb-3">Input Mapping</h3>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div className="flex flex-col items-center p-4 border border-white/5 bg-black/40 backdrop-blur-sm group hover:border-red-500/50 hover:bg-black/80 transition-all duration-300 rounded-sm">
+                <RotateCw size={16} className="text-neutral-500 mb-2 group-hover:text-[#FF0000] transition-colors" />
+                <span className="font-mono text-[8px] text-neutral-500 uppercase tracking-widest group-hover:text-white transition-colors">Rotate</span>
+              </div>
+              <div className="flex flex-col items-center p-4 border border-white/5 bg-black/40 backdrop-blur-sm group hover:border-red-500/50 hover:bg-black/80 transition-all duration-300 rounded-sm">
+                <ArrowDown size={16} className="text-neutral-500 mb-2 group-hover:text-[#FF0000] transition-colors" />
+                <span className="font-mono text-[8px] text-neutral-500 uppercase tracking-widest group-hover:text-white transition-colors">Nudge</span>
+              </div>
+              <div className="flex flex-col items-center p-4 border border-white/5 bg-black/40 backdrop-blur-sm group hover:border-red-500/50 hover:bg-black/80 transition-all duration-300 rounded-sm">
+                <ArrowLeft size={16} className="text-neutral-500 mb-2 group-hover:text-[#FF0000] transition-colors" />
+                <span className="font-mono text-[8px] text-neutral-500 uppercase tracking-widest group-hover:text-white transition-colors">Port</span>
+              </div>
+              <div className="flex flex-col items-center p-4 border border-white/5 bg-black/40 backdrop-blur-sm group hover:border-red-500/50 hover:bg-black/80 transition-all duration-300 rounded-sm">
+                <ArrowRight size={16} className="text-neutral-500 mb-2 group-hover:text-[#FF0000] transition-colors" />
+                <span className="font-mono text-[8px] text-neutral-500 uppercase tracking-widest group-hover:text-white transition-colors">Starb.</span>
+              </div>
+              <div className="col-span-2 flex flex-col items-center p-4 border border-white/5 bg-black/40 backdrop-blur-sm group hover:border-red-500/50 hover:bg-black/80 transition-all duration-300 rounded-sm">
+                <div className="w-12 h-3 border border-neutral-800 mb-2 group-hover:border-[#FF0000]/50 transition-colors"></div>
+                <span className="font-mono text-[8px] text-neutral-500 uppercase tracking-widest group-hover:text-white transition-colors">Quantum Drop</span>
               </div>
             </div>
-            
-            {/* Mobile Controls Layer */}
-            <div className="md:hidden fixed bottom-8 left-8 right-8 flex justify-between z-50 pointer-events-none">
-                <div className="flex gap-3 pointer-events-auto">
-                  <button onClick={() => movePlayer(-1)} className="p-5 bg-[#0a0a0a]/95 rounded-full border border-neutral-800 active:bg-[#FF0000]/20 active:border-[#FF0000] transition-all"><ArrowLeft size={22}/></button>
-                  <button onClick={() => movePlayer(1)} className="p-5 bg-[#0a0a0a]/95 rounded-full border border-neutral-800 active:bg-[#FF0000]/20 active:border-[#FF0000] transition-all"><ArrowRight size={22}/></button>
-                </div>
-                <div className="flex gap-3 pointer-events-auto">
-                  <button onClick={() => dropPlayer()} className="p-5 bg-[#0a0a0a]/95 rounded-full border border-neutral-800 active:bg-[#FF0000]/20 active:border-[#FF0000] transition-all"><ArrowDown size={22}/></button>
-                  <button onClick={() => playerRotate(board, 1)} className="p-5 bg-[#0a0a0a]/95 rounded-full border border-neutral-800 active:bg-[#FF0000]/20 active:border-[#FF0000] transition-all"><RotateCw size={22}/></button>
-                </div>
+
+            <div className="mt-auto pt-8">
+              <div className="border-t border-neutral-900 pt-4">
+                <p className="font-mono text-[9px] text-neutral-700 uppercase tracking-widest text-center">v4.5 // Liquidglass</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Mobile Controls Layer */}
+          <div className="md:hidden fixed bottom-8 left-8 right-8 flex justify-between z-50 pointer-events-none">
+            <div className="flex gap-3 pointer-events-auto">
+              <button onClick={() => movePlayer(-1)} className="p-5 bg-black/80 backdrop-blur-md rounded-full border border-white/10 active:bg-red-900/40 active:border-red-500 transition-all shadow-lg"><ArrowLeft size={22} className="text-white/80" /></button>
+              <button onClick={() => movePlayer(1)} className="p-5 bg-black/80 backdrop-blur-md rounded-full border border-white/10 active:bg-red-900/40 active:border-red-500 transition-all shadow-lg"><ArrowRight size={22} className="text-white/80" /></button>
+            </div>
+            <div className="flex gap-3 pointer-events-auto">
+              <button onClick={() => dropPlayer()} className="p-5 bg-black/80 backdrop-blur-md rounded-full border border-white/10 active:bg-red-900/40 active:border-red-500 transition-all shadow-lg"><ArrowDown size={22} className="text-white/80" /></button>
+              <button onClick={() => playerRotate(board, 1)} className="p-5 bg-black/80 backdrop-blur-md rounded-full border border-white/10 active:bg-red-900/40 active:border-red-500 transition-all shadow-lg"><RotateCw size={22} className="text-white/80" /></button>
             </div>
           </div>
         </div>
