@@ -148,7 +148,7 @@ const App: React.FC = () => {
           </div>
         </div>
 
-        <div className="relative flex flex-col md:flex-row gap-0 md:gap-6 items-stretch w-full max-w-4xl justify-center">
+        <div className="relative flex flex-col md:flex-row md:gap-6 items-stretch w-full max-w-4xl justify-center">
 
           {/* Left Panel - Score & Status - Hidden on Mobile */}
           <div className="hidden md:flex flex-col w-56 justify-between">
