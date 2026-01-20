@@ -32,7 +32,7 @@ const App: React.FC = () => {
     setDropTime(1000);
     resetPlayer();
     setGameOver(false);
-    resetStatus();
+    resetStatus(); // Reset score, rows, level
     prevScoreRef.current = 0;
     setGameStarted(true);
     gameAreaRef.current?.focus();
@@ -57,6 +57,7 @@ const App: React.FC = () => {
 
   const dropPlayer = useCallback(() => {
     setDropTime(null);
+    // Soft Drop: 1 point per cell moved down
     if (!checkCollision(player, board, { x: 0, y: 1 })) {
       addPoints(1);
     }
@@ -68,6 +69,7 @@ const App: React.FC = () => {
     while (!checkCollision(player, board, { x: 0, y: tmpY + 1 })) {
       tmpY += 1;
     }
+    // Hard Drop: 2 points per cell moved down
     addPoints(tmpY * 2);
     updatePlayerPos({ x: 0, y: tmpY, collided: true });
   }, [player, board, updatePlayerPos, addPoints]);
@@ -78,7 +80,7 @@ const App: React.FC = () => {
       const { key } = e;
       if (key === 'ArrowLeft') movePlayer(-1);
       else if (key === 'ArrowRight') movePlayer(1);
-      else if (key === 'ArrowDown') { e.preventDefault();Ql dropPlayer(); }
+      else if (key === 'ArrowDown') { e.preventDefault(); dropPlayer(); }
       else if (key === 'ArrowUp' || key === 'r' || key === 'R') { e.preventDefault(); playerRotate(board, 1); }
       else if (key === ' ') { e.preventDefault(); hardDrop(); }
     };
@@ -100,6 +102,7 @@ const App: React.FC = () => {
     drop();
   }, dropTime);
 
+  // Score flash effect when score increases significantly
   useEffect(() => {
     const scoreDiff = score - prevScoreRef.current;
     if (scoreDiff >= 100) {
@@ -111,7 +114,6 @@ const App: React.FC = () => {
   }, [score]);
 
   return (
-    // FIX 1: Trocado w-screen por w-full para evitar overflow horizontal fantasma
     <div
       className="relative w-full h-screen overflow-hidden bg-black font-sans text-white select-none outline-none"
       tabIndex={0}
@@ -119,14 +121,12 @@ const App: React.FC = () => {
     >
       <Monolith />
 
-      {/* FIX 2: Adicionado gap-2 no mobile para separar o HUD da sombra do tabuleiro */}
       <div className="absolute inset-0 z-10 flex flex-col items-center justify-center p-0 md:p-4 gap-2 md:gap-0">
 
         <div className="relative flex flex-col md:flex-row md:gap-6 items-stretch w-full max-w-4xl justify-center items-center md:items-stretch">
 
           {/* Left Panel - Score & Status - Hidden on Mobile */}
           <div className="hidden md:flex flex-col w-56 justify-between">
-             {/* ... (conteúdo inalterado) ... */}
             <div>
               <div className="mb-8 border-l-2 border-[#FF0000] pl-4">
                 <h1 className="text-3xl font-black tracking-tighter leading-none mb-1">BRICK<br />GAME</h1>
@@ -151,11 +151,8 @@ const App: React.FC = () => {
           {/* Center Column: Mobile HUD + Game Board wrapper together to align widths */}
           <div className="flex flex-col gap-0 items-center">
             
-            {/* Mobile HUD - Visible only on mobile 
-                FIX 3: Removido 'w-game-board'. Agora ele usa w-full para preencher o container pai
-                que terá a largura exata do jogo + bordas.
-            */}
-            <div className="md:hidden w-full z-20 mb-1 px-[2px]"> 
+            {/* Mobile HUD - Visible only on mobile */}
+            <div className="md:hidden w-full z-20 mb-1 px-[2px]">
               <div className="flex justify-between items-end border-l-2 border-[#FF0000] pl-3 mb-2">
                 <h1 className="text-xl font-black tracking-tighter leading-none text-white">BRICK<br /><span className="text-[#FF0000]">GAME</span></h1>
                 <div className="font-mono text-[8px] text-neutral-500 uppercase tracking-widest text-right">
@@ -181,11 +178,6 @@ const App: React.FC = () => {
 
             {/* Game Board Container */}
             <div className="relative group flex-shrink-0 z-10">
-              {/* FIX 4: Sombra condicional. 
-                 Mobile: shadow-lg (mais contido)
-                 Desktop (md): shadow-[0_0_50px...] (volumétrico expandido)
-                 Isso impede que a sombra "suje" o HUD no mobile.
-              */}
               <div className={`
                   relative p-[2px] bg-black border transition-all duration-500 overflow-hidden rounded-sm
                   ${gameOver ? 'border-[#FF0000] shadow-[0_0_80px_rgba(255,0,0,0.6)]' : 'border-white/10 shadow-lg md:shadow-[0_0_50px_rgba(0,0,0,0.8)]'}
@@ -235,7 +227,6 @@ const App: React.FC = () => {
 
           {/* Right Panel - Controls - Hidden on Mobile */}
           <div className="hidden md:flex flex-col w-56 justify-start">
-             {/* ... (conteúdo inalterado) ... */}
             <h3 className="font-mono text-[10px] text-neutral-600 mb-4 uppercase tracking-[0.3em] border-b border-neutral-900 pb-3">Input Mapping</h3>
 
             <div className="grid grid-cols-2 gap-3">
@@ -268,9 +259,10 @@ const App: React.FC = () => {
             </div>
           </div>
 
-          {/* Mobile Controls Layer */}
+          {/* Mobile Controls Layer - Industrial Design */}
           <div className="md:hidden fixed bottom-6 left-0 right-0 px-6 flex justify-between items-end z-50 pointer-events-none select-none">
-            {/* ... (conteúdo dos controles mobile inalterado) ... */}
+
+            {/* D-Pad Container */}
             <div className="pointer-events-auto grid grid-cols-3 grid-rows-2 gap-2 w-[160px]">
               {/* Left */}
               <button
@@ -280,7 +272,7 @@ const App: React.FC = () => {
                 <ArrowLeft size={24} className="text-neutral-400" />
               </button>
 
-              {/*Ql Down */}
+              {/* Down */}
               <button
                 onClick={() => dropPlayer()}
                 className="col-start-2 row-start-2 w-14 h-14 bg-black/80 backdrop-blur-xl border border-white/10 rounded-sm flex items-center justify-center active:bg-red-900/40 active:border-red-500 active:text-white transition-all shadow-[0_0_15px_rgba(0,0,0,0.5)]"
